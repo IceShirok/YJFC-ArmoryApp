@@ -1,0 +1,54 @@
+/-------------------------
+  SQL CREATE statements 0.0.1
+-------------------------/
+
+createdb yjfcdb
+
+CREATE TABLE Fencer (
+    gtid        char(9),
+    name        varchar(50)    NOT NULL,
+    PRIMARY KEY (gtid)
+);
+
+CREATE TABLE Admin (
+    gtid        char(9)        REFERENCES Fencer (gtid),
+    PRIMARY KEY(gtid)
+);
+
+CREATE TABLE CheckableItem (
+    type        char(2),
+    num         int,
+    size        varchar(5),
+    condition   varchar(10),
+    date_purch  date,
+    last_insp   date,
+    PRIMARY KEY (type, num)
+);
+
+CREATE TABLE Checkout (
+    gtid        char(9)     REFERENCES Fencer(gtid),
+    type        char(2)     REFERENCES CheckableItem(type),
+    num         int         REFERENCES CheckableItem(num),
+    date_out    date        NOT NULL,
+    PRIMARY KEY (type, num, date_out)
+);
+
+CREATE TABLE ArmoryStock (
+    name        varchar(35),
+    quantity    int,
+    low_q       int,
+PRIMARY KEY (name)
+);
+
+CREATE TABLE ArmoryStockHistory (
+    name        varchar(35)    REFERENCES ArmoryStock (name),
+    date        date,
+    amount      int,
+    unit_price  float,
+PRIMARY KEY (name, date)
+);
+
+CREATE VIEW Jackets AS
+    SELECT *
+    FROM CheckableItem
+    WHERE type = ‘Jacket’;
