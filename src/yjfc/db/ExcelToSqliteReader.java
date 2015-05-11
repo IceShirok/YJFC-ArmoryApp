@@ -32,7 +32,7 @@ public class ExcelToSqliteReader {
             workbook = new XSSFWorkbook(file);
             FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
             int numSheets = workbook.getNumberOfSheets();
-           
+
             for(int i=0; i<numSheets; i++) {
                 XSSFSheet sheet = workbook.getSheetAt(i);
 
@@ -85,7 +85,7 @@ public class ExcelToSqliteReader {
                                 item.setNum((int)Double.parseDouble(rowTemp.getCell(num).toString())); 
                             }
                         } catch(Exception e) {
-                            //System.out.println("parse error for num!");
+                            System.out.println("parse error for num!");
                         }
                         
                         if(size >= 0) {
@@ -103,13 +103,17 @@ public class ExcelToSqliteReader {
                 }
             }
         } catch(FileNotFoundException e) {
-            
+            System.out.println("Error finding file");
         } catch(IOException e) {
-            
+            System.out.println("Error with IO");
         } finally {
             try {
-                file.close();
-                workbook.close();
+            	if(file != null) {
+            		file.close();
+            	}
+            	if(workbook != null) {
+            		workbook.close();
+            	}
             } catch(Exception e) {
                 System.out.println("Error with closing files");
             }

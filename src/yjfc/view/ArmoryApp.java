@@ -141,8 +141,11 @@ public class ArmoryApp extends Application {
                 // load the excel data into main memory
                 final Task<Void> task = new Task<Void>() {
                     @Override protected Void call() throws Exception {
+                        System.out.println("1");  
                         List<CheckoutItemPOJO> aList = uploadExcel(importField.getText());
+                        System.out.println("2");  
                         uploadToDatabase(aList);
+                        System.out.println("3");  
 						return null;
                     }
                 };
@@ -159,7 +162,20 @@ public class ArmoryApp extends Application {
 		                  	}
 		                });
 					}
-                	
+                });
+                
+                task.setOnFailed(new EventHandler() {
+					@Override
+					public void handle(Event arg0) {
+		                Platform.runLater(new Runnable() {
+		                	@Override
+		                	public void run() {
+		                        bar.setVisible(false);
+		                        importButton.setDisable(false); 
+		                        System.out.println("failed");  
+		                  	}
+		                });
+					}
                 });
 
                 new Thread(task).start();
@@ -327,7 +343,7 @@ public class ArmoryApp extends Application {
             List<CheckoutItemPOJO> aList = ExcelToSqliteReader.parseExcel(filename);
             return aList;
         } catch(Exception e) {
-            e.printStackTrace();
+            System.out.println(e);
             return null;
         }
     }
