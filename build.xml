@@ -1,0 +1,46 @@
+<project name="ArmoryApp" default="dist" basedir=".">
+    <property name="src" location="src"/>
+    <property name="bin" location="bin"/>
+    <property name="lib" location="lib"/>
+    <property name="dist"  location="dist"/>
+    
+    <path id="master-classpath">
+        <fileset dir="${lib}">
+            <include name="*.jar"/>
+        </fileset>
+
+        <pathelement path="."/>
+    </path>
+    
+    <target name="init">
+        <mkdir dir="${bin}" />
+    </target>
+    
+    <target name="compile" depends="init">
+        <javac srcdir="${src}" destdir="${bin}">
+            <classpath refid="master-classpath"/>
+        </javac>
+    </target>
+    
+    <target name="dist" depends="compile">
+        <jar destfile="${dist}/ArmoryApp.jar">
+            <fileset dir="${bin}" includes="**/*.class" />
+            <fileset dir="${lib}" includes="**/*.jar" />
+            <manifest>
+                <attribute name="Main-Class"
+                    value="yjfc.view.ArmoryApp"/>
+            </manifest>
+        </jar>
+    </target>
+    
+    <target name="run" depends="dist">
+    
+    </target>
+    
+    <target name="all" depends="clean, run" />
+    
+    <target name="clean">
+        <delete dir="${bin}" />
+        <delete dir="${dist}" />
+    </target>
+</project>
