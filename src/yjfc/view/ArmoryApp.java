@@ -5,10 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -42,7 +46,7 @@ public class ArmoryApp extends Application {
 
 
     /************************************
-      UI assembly
+      Launch
     ************************************/
     public static void main(String[] args) {
         launch(args);
@@ -51,17 +55,13 @@ public class ArmoryApp extends Application {
     /************************************
       UI assembly
     ************************************/
-    
-    private Button importButton;
-    private TextField importField;
-    private ComboBox<String> fencerCombo;
-    
     private GridPane allGrid;
     private GridPane epeeGrid;
     private GridPane foilGrid;
     private GridPane sabreGrid;
     
     private DatePicker datePick;
+    private ComboBox<String> fencerCombo;
 
     private ObservableList<CheckoutItemPOJO> tableList;
     
@@ -76,11 +76,11 @@ public class ArmoryApp extends Application {
     
     private Scene createCheckoutScene() {
     	db = new PseudoDb();
-
+    	
         BorderPane borderpane = new BorderPane();
-        borderpane.setTop(createFencerPane());
+        borderpane.setTop(createAdminPane());
         borderpane.setCenter(createSelectPane());
-        borderpane.setBottom(createMenuPane());
+        borderpane.setBottom(createExportButton());
         borderpane.setRight(createTablePane());
         
         StackPane root = new StackPane();
@@ -90,39 +90,13 @@ public class ArmoryApp extends Application {
     	return checkoutScene;
     }
     
-    private Node createMenuPane() {
-        final ProgressBar bar = new ProgressBar();
-        bar.setVisible(false);
-
-        importButton = new Button();
-        importButton.setText("Upload Excel");
-        importButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                importButton.setDisable(true);
-                bar.setVisible(true);
-
-                final Task<List<CheckoutItemPOJO>> task = new Task<List<CheckoutItemPOJO>>() {
-                    @Override protected List<CheckoutItemPOJO> call() throws Exception {
-                        List<CheckoutItemPOJO> aList = uploadExcel(importField.getText());
-                        return aList;
-                    }
-                };
-                new Thread(task).start();
-
-                final Task<Void> task2 = new Task<Void>() {
-                    @Override protected Void call() throws Exception {
-                        uploadToDatabase(task.get());
-                        bar.setVisible(false);
-                        return null;
-                    }
-                };
-                new Thread(task2).start();
-            }
-        });
-        
-        importField = new TextField("Armory.xlsx");
-        
+    private Node createAdminPane() {
+    	VBox adminBox = new VBox();
+    	adminBox.getChildren().addAll(createImportPane(), createDatePane());
+    	return adminBox;
+    }
+    
+    private Node createExportButton() {
         final Button exportButton = new Button("Export");
         exportButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -133,17 +107,68 @@ public class ArmoryApp extends Application {
             }
         });
         
-        datePick = new DatePicker(LocalDate.now());
         
-        GridPane gridpane = new GridPane();
-        gridpane.add(importField, 1, 1);
-        gridpane.add(importButton, 2, 1);
-        gridpane.add(new Text("Checkout date"), 1, 2);
-        gridpane.add(datePick, 2, 2);
-        gridpane.add(bar, 1, 4);
-        gridpane.add(exportButton, 1, 6);
+        VBox box = new VBox();
+        box.getChildren().addAll(exportButton);
 
-        return gridpane;
+        return box;
+    }
+    
+    private Node createDatePane() {
+    	HBox box = new HBox();
+        datePick = new DatePicker(LocalDate.now());
+        box.getChildren().addAll(new Text("Checkout date"), datePick);
+    	return box;
+    }
+    
+    private Node createImportPane() {
+    	HBox box = new HBox();
+    	
+        final ProgressBar bar = new ProgressBar();
+        bar.setVisible(false);
+        
+    	final TextField importField = new TextField("Armory.xlsx");
+
+        final Button importButton = new Button();
+        importButton.setText("Upload Excel");
+        importButton.setOnAction(new EventHandler<ActionEvent>() {
+            @SuppressWarnings({ "unchecked", "rawtypes" })
+			@Override
+            public void handle(ActionEvent event) {
+                importButton.setDisable(true);
+                bar.setVisible(true);
+
+                // load the excel data into main memory
+                final Task<Void> task = new Task<Void>() {
+                    @Override protected Void call() throws Exception {
+                        List<CheckoutItemPOJO> aList = uploadExcel(importField.getText());
+                        uploadToDatabase(aList);
+						return null;
+                    }
+                };
+
+                // update ui
+                task.setOnSucceeded(new EventHandler() {
+					@Override
+					public void handle(Event arg0) {
+		                Platform.runLater(new Runnable() {
+		                	@Override
+		                	public void run() {
+		                        bar.setVisible(false);
+		                        importButton.setDisable(false);   
+		                  	}
+		                });
+					}
+                	
+                });
+
+                new Thread(task).start();
+            }
+        });
+        
+        box.getChildren().addAll(importField, importButton, bar);
+        
+        return box;
     }
     
     @SuppressWarnings("unchecked")
@@ -184,12 +209,11 @@ public class ArmoryApp extends Application {
             @Override
             public void handle(ActionEvent event) {
             	removeButton.setDisable(true);
-            	
-            	String fencerName = null;
 
             	for(CheckoutItemPOJO item : tableList) {
+        			System.out.println(item);
+        			System.out.println(item.getChecked());
             		if(item.getChecked()) {
-            			fencerName = item.getPerson();
             			item.setChecked(false);
             			db.remove(item);
             		}
@@ -197,11 +221,9 @@ public class ArmoryApp extends Application {
 
                 tableList.clear();
                 tableList.addAll(db.selectForExport(datePick.getValue()));
-            	
-                getFencerSelection(fencerName, db.getAllSymbols(), allGrid);
-                getFencerSelection(fencerName, db.getEpeeSymbols(), epeeGrid);
-                getFencerSelection(fencerName, db.getFoilSymbols(), foilGrid);
-                getFencerSelection(fencerName, db.getSabreSymbols(), sabreGrid);
+
+                fencerCombo.getSelectionModel().clearSelection();
+                populateComboAll();
             	
                 removeButton.setDisable(false);
             }
@@ -213,68 +235,60 @@ public class ArmoryApp extends Application {
     }
     
     private Node createFencerPane() {
-    	HBox fencerBox = new HBox();
+    	HBox addBox = new HBox();
+        
+        Text fencerTitleText = new Text("Fencer info");
     	
         final TextField fencerField = new TextField();
-        fencerCombo = new ComboBox<>();
 
-        final Button addButton = new Button("Add");
-        addButton.setOnAction(new EventHandler<ActionEvent>() {
+        fencerCombo = new ComboBox<>();
+        fencerCombo.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+			@Override
+			public void changed(ObservableValue<? extends String> value,
+					String before, String after) {
+                String fencerName = fencerCombo.getSelectionModel().getSelectedItem();
+                
+                if(fencerName != null && fencerName.length() > 0) {
+                	fencerField.setText(fencerName);
+                	
+                	getFencerSelectionAll(fencerName);
+                }
+			}
+        });
+
+
+        final Button fencerButton = new Button("Add");
+        fencerButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                addButton.setDisable(true);
+                fencerButton.setDisable(true);
                 String fencerName = fencerField.getText();
 
                 if(fencerName != null && fencerName.length() > 0) {
-	                updateDatabase(fencerName, db.getAllSymbols(), allGrid);
-	                updateDatabase(fencerName, db.getEpeeSymbols(), epeeGrid);
-	                updateDatabase(fencerName, db.getFoilSymbols(), foilGrid);
-	                updateDatabase(fencerName, db.getSabreSymbols(), sabreGrid);
+                	updateAll(fencerName);
 	                
 	                fencerCombo.setItems(FXCollections.observableArrayList(db.selectPersons()));
 	                
 	                tableList.clear();
 	                tableList.addAll(db.selectForExport(datePick.getValue()));
 	                
-	                populateCombo(db.getAllSymbols(), allGrid);
-	                populateCombo(db.getEpeeSymbols(), epeeGrid);
-	                populateCombo(db.getFoilSymbols(), foilGrid);
-	                populateCombo(db.getSabreSymbols(), sabreGrid);
+	                populateComboAll();
 	                
 	                fencerField.clear();
                 }
 
-                addButton.setDisable(false);
-            }
-        });
-        
-        final Button updateButton = new Button("Update");
-        updateButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                updateButton.setDisable(true);
-
-                String fencerName = fencerCombo.getSelectionModel().getSelectedItem();
-                
-                if(fencerName != null && fencerName.length() > 0) {
-                	fencerField.setText(fencerName);
-                	
-	                getFencerSelection(fencerName, db.getAllSymbols(), allGrid);
-	                getFencerSelection(fencerName, db.getEpeeSymbols(), epeeGrid);
-	                getFencerSelection(fencerName, db.getFoilSymbols(), foilGrid);
-	                getFencerSelection(fencerName, db.getSabreSymbols(), sabreGrid);
-                }
-                
-                updateButton.setDisable(false);
+                fencerButton.setDisable(false);
             }
         });
 
-        fencerBox.getChildren().addAll(fencerField, addButton, fencerCombo, updateButton);
+        addBox.getChildren().addAll(fencerTitleText, fencerField, fencerButton, fencerCombo);
 
-        return fencerBox;
+        return addBox;
     }
     
     private Node createSelectPane() {
+    	Text selectTitleText = new Text("Equipment Checkout");
+    	
         allGrid = new GridPane();
         epeeGrid = new GridPane();
         foilGrid = new GridPane();
@@ -294,10 +308,12 @@ public class ArmoryApp extends Application {
         
         VBox selectPane = new VBox();
         selectPane.getChildren().addAll(
+        		selectTitleText,
                 allText, allGrid,
                 epeeText, epeeGrid,
                 foilText, foilGrid,
-                sabreText, sabreGrid
+                sabreText, sabreGrid,
+                createFencerPane()
         );
         
         return selectPane;
@@ -318,17 +334,30 @@ public class ArmoryApp extends Application {
 
     public void uploadToDatabase(List<CheckoutItemPOJO> aList) {
         db.insertAll(aList);
-        
+        populateComboAll();
+    }
+
+    
+    /************************************
+      Populate interface with data
+    ************************************/    
+    private void populateGrid(List<String> type, List<String> map, GridPane grid) {
+        for(int i=0; i<type.size(); i++) {
+            ColumnConstraints column = new ColumnConstraints(75);
+            grid.getColumnConstraints().add(column);
+            grid.add(new Text(map.get(i)), i, 0);
+            grid.add(new ComboBox<CheckoutItemPOJO>(), i, 1);
+        }
+        grid.setPadding(new Insets(5, 5, 25, 5));
+    }
+    
+    private void populateComboAll() {
         populateCombo(db.getAllSymbols(), allGrid);
         populateCombo(db.getEpeeSymbols(), epeeGrid);
         populateCombo(db.getFoilSymbols(), foilGrid);
         populateCombo(db.getSabreSymbols(), sabreGrid);
     }
 
-    
-    /************************************
-      Populate interface with data
-    ************************************/
     @SuppressWarnings("unchecked")
     private void populateCombo(List<String> type, GridPane grid) {
         List<CheckoutItemPOJO> myList = null;
@@ -337,7 +366,6 @@ public class ArmoryApp extends Application {
         for(int i=0; i<grid.getChildren().size(); i++) {
             if(grid.getChildren().get(i) instanceof ComboBox) {
                 box = (ComboBox<CheckoutItemPOJO>) grid.getChildren().get(i);
-                box.getItems().clear();
                 box.setPromptText("");
 
                 myList = db.selectByType(type.get(temp));
@@ -348,15 +376,12 @@ public class ArmoryApp extends Application {
             }
         }
     }
-    
-    private void populateGrid(List<String> type, List<String> map, GridPane grid) {
-        for(int i=0; i<type.size(); i++) {
-            ColumnConstraints column = new ColumnConstraints(75);
-            grid.getColumnConstraints().add(column);
-            grid.add(new Text(map.get(i)), i, 0);
-            grid.add(new ComboBox<CheckoutItemPOJO>(), i, 1);
-        }
-        grid.setPadding(new Insets(5, 5, 25, 5));
+
+    private void getFencerSelectionAll(String fencerName) {
+        getFencerSelection(fencerName, db.getAllSymbols(), allGrid);
+        getFencerSelection(fencerName, db.getEpeeSymbols(), epeeGrid);
+        getFencerSelection(fencerName, db.getFoilSymbols(), foilGrid);
+        getFencerSelection(fencerName, db.getSabreSymbols(), sabreGrid);
     }
     
     @SuppressWarnings("unchecked")
@@ -369,6 +394,7 @@ public class ArmoryApp extends Application {
 
         for(int i=0; i<grid.getChildren().size(); i++) {
             if(grid.getChildren().get(i) instanceof ComboBox) {
+            	boolean alreadyThere = false;
                 box = (ComboBox<CheckoutItemPOJO>) grid.getChildren().get(i);
                 box.getItems().clear();
                 box.setPromptText("");
@@ -378,9 +404,10 @@ public class ArmoryApp extends Application {
                 box.setItems(items);
 
                 for(CheckoutItemPOJO item : selectList) {
-                	if(myList.contains(item) && !removedList.contains(item)) {
+                	if(myList.contains(item) && !removedList.contains(item) && !alreadyThere) {
                 		box.getSelectionModel().select(item);
                 		removedList.add(item);
+                		alreadyThere = true;
                 	}
                 }
 
@@ -393,6 +420,13 @@ public class ArmoryApp extends Application {
     /************************************
       Update database
     ************************************/
+    private void updateAll(String person) {
+        updateDatabase(person, db.getAllSymbols(), allGrid);
+        updateDatabase(person, db.getEpeeSymbols(), epeeGrid);
+        updateDatabase(person, db.getFoilSymbols(), foilGrid);
+        updateDatabase(person, db.getSabreSymbols(), sabreGrid);
+    }
+    
     @SuppressWarnings("unchecked")
     private void updateDatabase(String person, List<String> type, GridPane grid) {
     	LocalDate date = datePick.getValue();
