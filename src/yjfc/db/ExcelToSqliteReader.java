@@ -20,7 +20,6 @@ public class ExcelToSqliteReader {
     public final static String DB_COND = "condition";
     public final static String DB_HAND = "handed";
     
-    // gets filename of Excel, returns sqlite db
     public static List<CheckoutItemPOJO> parseExcel(String filename) throws IOException {
         FileInputStream file = null;
         XSSFWorkbook workbook = null;
@@ -77,12 +76,8 @@ public class ExcelToSqliteReader {
                         item.setType(symbol);
 
                         try {
-                            if(rowTemp.getCell(num).toString().contains("+")) {
-                                String result = evaluator.evaluate(rowTemp.getCell(num)).formatAsString();
-                                item.setNum((int)Double.parseDouble(result));   
-                            } else {
-                                item.setNum((int)Double.parseDouble(rowTemp.getCell(num).toString())); 
-                            }
+                            String result = evaluator.evaluate(rowTemp.getCell(num)).formatAsString();
+                            item.setNum((int)Double.parseDouble(result));
                         } catch(Exception e) {
                             System.out.println("parse error for num!");
                         }
@@ -95,10 +90,6 @@ public class ExcelToSqliteReader {
                         }
                         aList.add(item);
                     }
-//                    
-//                    for(CheckoutItemPOJO item : aList) {
-//                        System.out.println(item);
-//                    }
                 }
             }
         } finally {

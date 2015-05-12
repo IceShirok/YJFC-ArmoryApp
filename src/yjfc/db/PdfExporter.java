@@ -1,12 +1,10 @@
-package yjfc.view;
+package yjfc.db;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
-import yjfc.db.CheckoutItemPOJO;
 
 import com.itextpdf.text.Anchor;
 import com.itextpdf.text.BadElementException;

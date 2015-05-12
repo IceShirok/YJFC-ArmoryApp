@@ -33,7 +33,6 @@ public class DatabaseConnector {
                     + "PRIMARY KEY (" + DB_CHECKOUTITEM_TYPE + "," + DB_CHECKOUTITEM_NUM + ")"
                     + ");");
         } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }

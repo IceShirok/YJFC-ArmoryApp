@@ -1,13 +1,10 @@
 package yjfc.view;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.itextpdf.text.DocumentException;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -46,7 +43,10 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import yjfc.db.CheckoutItemPOJO;
 import yjfc.db.ExcelToSqliteReader;
+import yjfc.db.PdfExporter;
 import yjfc.db.PseudoDb;
+
+import com.itextpdf.text.DocumentException;
  
 public class ArmoryApp extends Application {
     
@@ -100,11 +100,6 @@ public class ArmoryApp extends Application {
         root.getChildren().add(borderpane);
         root.setStyle("-fx-background-color: #F1B900;");
         Scene checkoutScene = new Scene(root);
-        
-        // TODO fix this
-//        File css = new File("template.css");
-//        checkoutScene.getStylesheets().clear();
-//        checkoutScene.getStylesheets().add("file:"+css);
 
     	return checkoutScene;
     }
