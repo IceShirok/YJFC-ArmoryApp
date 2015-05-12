@@ -1,4 +1,4 @@
-<project name="ArmoryApp" default="dist" basedir=".">
+<project name="ArmoryApp" default="all" basedir=".">
     <property name="src" location="src"/>
     <property name="bin" location="bin"/>
     <property name="lib" location="lib"/>
@@ -30,7 +30,7 @@
     
     <target name="dist" depends="compile">
         <copy todir="${dist}">
-            <fileset dir="${docs}" />
+            <fileset dir="${docs}" includes="*.pdf" />
         </copy>
         <jar destfile="${dist}/ArmoryApp.jar">
             <fileset dir="${bin}" includes="**/*.class" />
@@ -46,9 +46,11 @@
         <java jar="${dist}/ArmoryApp.jar" fork="true" />
     </target>
     
-    <target name="all" depends="clean, run" />
+    <target name="all" depends="clean, dist" />
     
     <target name="clean">
         <delete dir="${bin}" />
+        <delete dir="${dist}" />
+        <mkdir dir="${dist}" />
     </target>
 </project>
