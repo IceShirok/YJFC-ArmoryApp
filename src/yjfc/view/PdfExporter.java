@@ -1,5 +1,6 @@
 package yjfc.view;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -25,18 +26,16 @@ public class PdfExporter {
     private static Font catFont = new Font(Font.FontFamily.TIMES_ROMAN, 18, Font.BOLD);
     private static Font subFont = new Font(Font.FontFamily.TIMES_ROMAN, 16, Font.BOLD);
     
-    public static void export(LocalDate date, List<CheckoutItemPOJO> aList) {
-        try {
-            String name = "YJFC Armory Checkout " + date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + ".pdf";
-            Document document = new Document();
-            PdfWriter.getInstance(document, new FileOutputStream(name));
-            document.open();
-            addMetaData(document, date);
-            addContent(document, date, aList);
-            document.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public static void export(LocalDate date, List<CheckoutItemPOJO> aList)
+    		throws DocumentException, FileNotFoundException {
+        String name = "YJFC Armory Checkout "
+        		+ date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + ".pdf";
+        Document document = new Document();
+        PdfWriter.getInstance(document, new FileOutputStream(name));
+        document.open();
+        addMetaData(document, date);
+        addContent(document, date, aList);
+        document.close();
     }
 
     // iText allows to add metadata to the PDF which can be viewed in your Adobe

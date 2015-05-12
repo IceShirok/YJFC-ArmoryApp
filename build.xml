@@ -3,6 +3,7 @@
     <property name="bin" location="bin"/>
     <property name="lib" location="lib"/>
     <property name="dist"  location="dist"/>
+    <property name="docs" location="docs"/>
     
     <path id="master-classpath">
         <fileset dir="${lib}">
@@ -18,6 +19,7 @@
     
     <target name="init">
         <mkdir dir="${bin}" />
+        <mkdir dir="${dist}" />
     </target>
     
     <target name="compile" depends="init">
@@ -27,6 +29,9 @@
     </target>
     
     <target name="dist" depends="compile">
+        <copy todir="${dist}">
+            <fileset dir="${docs}" />
+        </copy>
         <jar destfile="${dist}/ArmoryApp.jar">
             <fileset dir="${bin}" includes="**/*.class" />
             <fileset dir="${lib}" includes="**/*.jar" />
@@ -45,6 +50,5 @@
     
     <target name="clean">
         <delete dir="${bin}" />
-        <delete dir="${dist}" />
     </target>
 </project>

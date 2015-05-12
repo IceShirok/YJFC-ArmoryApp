@@ -2,7 +2,6 @@ package yjfc.db;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -22,7 +21,7 @@ public class ExcelToSqliteReader {
     public final static String DB_HAND = "handed";
     
     // gets filename of Excel, returns sqlite db
-    public static List<CheckoutItemPOJO> parseExcel(String filename) {
+    public static List<CheckoutItemPOJO> parseExcel(String filename) throws IOException {
         FileInputStream file = null;
         XSSFWorkbook workbook = null;
         List<CheckoutItemPOJO> aList = new ArrayList<>();
@@ -102,21 +101,13 @@ public class ExcelToSqliteReader {
 //                    }
                 }
             }
-        } catch(FileNotFoundException e) {
-            System.out.println("Error finding file");
-        } catch(IOException e) {
-            System.out.println("Error with IO");
         } finally {
-            try {
-            	if(file != null) {
-            		file.close();
-            	}
-            	if(workbook != null) {
-            		workbook.close();
-            	}
-            } catch(Exception e) {
-                System.out.println("Error with closing files");
-            }
+        	if(file != null) {
+        		file.close();
+        	}
+        	if(workbook != null) {
+        		workbook.close();
+        	}
         }
         return aList;
     }

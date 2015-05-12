@@ -1,4 +1,4 @@
-# Armory App
+# YJFC Armory App
 ### Version 0.0.1
 
 ## Version History
@@ -9,7 +9,6 @@
     - Implemented framework for remote database communication
 
 ## Current Development
-- Write Ant build file to compile
 - Fix bugs
 - Make this user-friendly
 - Make a stable version
