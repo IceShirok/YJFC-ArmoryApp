@@ -298,10 +298,17 @@ public class ArmoryApp extends Application {
 
                 tableList.clear();
                 tableList.addAll(db.selectForExport(datePick.getValue()));
+
             	importButton.setDisable(tableList.size() > 0);
 
-                fencerCombo.getSelectionModel().clearSelection();
-                populateComboAll();
+            	if(fencerCombo.getSelectionModel().getSelectedItem() != null) {
+            		getFencerSelectionAll(fencerCombo.getSelectionModel().getSelectedItem());
+            	} else {
+	                fencerCombo.getSelectionModel().clearSelection();
+	                populateComboAll();
+            	}
+                
+                fencerCombo.setItems(FXCollections.observableArrayList(db.selectPersons()));
             	
                 removeButton.setDisable(false);
             }
@@ -355,6 +362,7 @@ public class ArmoryApp extends Application {
 	                tableList.clear();
 	                tableList.addAll(db.selectForExport(datePick.getValue()));
 	            	importButton.setDisable(tableList.size() > 0);
+	                fencerCombo.getSelectionModel().clearSelection();
 	                
 	                populateComboAll();
 	                
@@ -364,8 +372,20 @@ public class ArmoryApp extends Application {
                 fencerButton.setDisable(false);
             }
         });
+        
+        final Button deselectButton = new Button("Deselect");
+        deselectButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+            	if(fencerCombo.getSelectionModel().getSelectedItem() != null) {
+	                fencerCombo.getSelectionModel().clearSelection();
+	                fencerField.setText("");
+	                populateComboAll();
+            	}
+            }
+        });
 
-        addBox.getChildren().addAll(fencerTitleText, fencerField, fencerButton, fencerCombo);
+        addBox.getChildren().addAll(fencerTitleText, fencerField, fencerButton, fencerCombo, deselectButton);
 
         return addBox;
     }
@@ -451,11 +471,13 @@ public class ArmoryApp extends Application {
         for(int i=0; i<grid.getChildren().size(); i++) {
             if(grid.getChildren().get(i) instanceof ComboBox) {
                 box = (ComboBox<CheckoutItemPOJO>) grid.getChildren().get(i);
-                box.setPromptText("");
 
                 myList = db.selectByType(type.get(temp));
                 ObservableList<CheckoutItemPOJO> items = FXCollections.observableArrayList(myList);
                 box.setItems(items);
+
+                box.getSelectionModel().clearSelection();
+                box.setPromptText("");
 
                 temp++;
             }

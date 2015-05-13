@@ -9,13 +9,12 @@
 
 \maketitle
 
-\begin{abstract}
-tl;dr This is the guide for equipment checkout.
-\end{abstract}
+\section{Requirements}
+\begin{itemize}
+\item JRE 1.8 installed on machine
+\end{itemize}
 
 \section{Instructions}
-Screenshot of application
-
 \includegraphics[scale=0.7]{screen.png}
 
 \begin{itemize}
@@ -25,9 +24,13 @@ Screenshot of application
 
 \item \textbf{Equipment Grid}: Grid of equipment filled in with data from Excel spreadsheet.
 
-\item \textbf{Fencer Info}: Two options. Typing in a fencer's name, selecting the dropdown, and pressing 'Add' will associate all equipment to the fencer. Clicking the dropdown to the right of the button allows selection of fencers with existing equipment.
+\item \textbf{Fencer Info}: Two options.
+\begin{itemize}
+	\item Typing in a fencer's name, selecting the dropdown, and pressing 'Add' will associate all equipment to the fencer.
+	\item Clicking the dropdown to the right of the button allows selection of fencer with existing equipment. Clicking 'Deselect' will deselect the existing fencer.
+\end{itemize}
 
-\item \textbf{Fencer Checkout List table}: displays all equipment checked out. Clicking the 'Removed' checkbox associated with the equipment and clicking 'Remove from List' will remove the fencer from the equipment.
+\item \textbf{Fencer Checkout List table}: displays all equipment checked out. Clicking the 'Removed' checkbox associated with the equipment and clicking 'Remove from List' will remove the equipment associated with the fencer.
 
 \item \textbf{Export into PDF}: Exports the info displayed in the Fencer Checkout List into a PDF file.
 \end{itemize}
